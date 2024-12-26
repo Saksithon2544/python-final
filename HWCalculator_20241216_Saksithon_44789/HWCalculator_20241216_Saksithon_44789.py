@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import ttk
+import math
 
 class CalculatorApp:
     def __init__(self, root):
@@ -9,71 +11,108 @@ class CalculatorApp:
         self.root.bind("<Key>", self.on_key_press)
 
     def create_widgets(self):
-        # แสดงผลลัพธ์
-        self.result_label = tk.Label(self.root, text="", height=2, anchor="e", font=("Arial", 24))
-        self.result_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
+        # Style for buttons and labels
+        style = ttk.Style()
+        style.configure("TButton", font=("Arial", 18), padding=5)
+        style.configure("TLabel", font=("Arial", 24), padding=10)
 
-        # สร้างปุ่มตัวเลขและเครื่องหมาย
+        # Display result
+        self.result_label = ttk.Label(self.root, text="", anchor="e", background="white", relief="sunken")
+        self.result_label.grid(row=0, column=0, columnspan=4, sticky="we", padx=10, pady=10)
+
+        # Buttons configuration
         buttons = [
-            ("7", 1, 0), ("8", 1, 1), ("9", 1, 2), ("/", 1, 3),
-            ("4", 2, 0), ("5", 2, 1), ("6", 2, 2), ("*", 2, 3),
-            ("1", 3, 0), ("2", 3, 1), ("3", 3, 2), ("-", 3, 3),
-            ("0", 4, 0), (".", 4, 1), ("=", 4, 2), ("+", 4, 3)
+            ("(", 1, 0, 1), (")", 1, 1, 1), ("C", 1, 2, 1), ("CE", 1, 3, 1),
+            ("7", 2, 0, 1), ("8", 2, 1, 1), ("9", 2, 2, 1), ("/", 2, 3, 1),
+            ("4", 3, 0, 1), ("5", 3, 1, 1), ("6", 3, 2, 1), ("*", 3, 3, 1),
+            ("1", 4, 0, 1), ("2", 4, 1, 1), ("3", 4, 2, 1), ("-", 4, 3, 1),
+            ("0", 5, 0, 1), (".", 5, 1, 1), ("=", 5, 2, 1), ("+", 5, 3, 1),
+            ("%", 6, 0, 1), ("√", 6, 1, 1), ("ปิด", 6, 2, 2),
         ]
 
-        for (text, row, col) in buttons:
-            button = tk.Button(self.root, text=text, width=5, height=2, font=("Arial", 18), command=lambda t=text: self.on_button_click(t))
-            button.grid(row=row, column=col, padx=5, pady=5)
-
-        # ปุ่มลบเคลียร์ค่า
-        clear_button = tk.Button(self.root, text="C", width=5, height=2, font=("Arial", 18), command=self.clear)
-        clear_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
-
-        # ปุ่มสำหรับปิด
-        quit_button = tk.Button(self.root, text="ปิด", width=5, height=2, font=("Arial", 18), command=self.close)
-        quit_button.grid(row=5, column=2, columnspan=2, padx=5, pady=5)
+        for text, row, col, colspan in buttons:
+            button = ttk.Button(self.root, text=text, command=lambda t=text: self.on_button_click(t))
+            button.grid(row=row, column=col, columnspan=colspan, sticky="we", padx=5, pady=5)
 
     def on_button_click(self, button_text):
         if button_text == "=":
-            try:
-                # คำนวณผลลัพธ์
-                result = eval(self.current_input)
-                self.result_label.config(text=str(result))
-                self.current_input = str(result)
-            except Exception as e:
-                self.result_label.config(text="ข้อผิดพลาด")
-                self.current_input = ""
+            self.evaluate_expression()
+        elif button_text == "C":
+            self.clear()
+        elif button_text == "CE":
+            self.current_input = self.current_input[:-1]
+            self.result_label.config(text=self.current_input)
+        elif button_text == "√":
+            self.calculate_square_root()
+        elif button_text == "%":
+            self.calculate_percentage()
+        elif button_text == "ปิด":
+            self.close()
         else:
-            # ลบเลข 0 ที่อยู่ข้างหน้าก่อนแสดง
-            if self.current_input == "0" and button_text.isdigit():
-                self.current_input = button_text
-            else:
-                self.current_input += button_text
+            self.current_input += button_text
             self.result_label.config(text=self.current_input)
 
     def on_key_press(self, event):
-        key = event.keysym  # ใช้ keysym เพื่อรองรับการกดคีย์ที่หลากหลาย
-        if key in "0123456789":  # ตัวเลข 0-9
+        key = event.char
+        valid_keys = "0123456789.+-*/()%"
+        if key in valid_keys:
             self.on_button_click(key)
-        elif key in "+-*/":  # เครื่องหมายคำนวณ
-            self.on_button_click(key)
-        elif key == "Return" or key == "KP_Enter":  # ปุ่ม Enter หรือ Return
+        elif event.keysym == "Return":
             self.on_button_click("=")
-        elif key == "BackSpace":  # ลบ
+        elif event.keysym == "BackSpace":
+            self.on_button_click("CE")
+        elif event.keysym == "Escape":
             self.clear()
-        elif key == ".":
-            if "." not in self.current_input:  # ป้องกันการใส่จุดทศนิยมซ้ำ
-                self.on_button_click(key)
+        elif event.keysym.lower() == "q":
+            self.close()
+
+    def evaluate_expression(self):
+        try:
+            # Safe evaluation
+            result = eval(self.current_input, {"__builtins__": None}, {"math": math})
+            if isinstance(result, (int, float)):
+                self.result_label.config(text=str(result))
+                self.current_input = str(result)
+            else:
+                raise ValueError
+        except ZeroDivisionError:
+            self.result_label.config(text="หารด้วยศูนย์ไม่ได้")
+            self.current_input = ""
+        except Exception:
+            self.result_label.config(text="ข้อผิดพลาด")
+            self.current_input = ""
+
+    def calculate_square_root(self):
+        try:
+            number = float(self.current_input)
+            if number < 0:
+                raise ValueError
+            result = math.sqrt(number)
+            self.result_label.config(text=str(result))
+            self.current_input = str(result)
+        except Exception:
+            self.result_label.config(text="ข้อผิดพลาด")
+            self.current_input = ""
+
+    def calculate_percentage(self):
+        try:
+            result = float(self.current_input) / 100
+            self.result_label.config(text=str(result))
+            self.current_input = str(result)
+        except Exception:
+            self.result_label.config(text="ข้อผิดพลาด")
+            self.current_input = ""
 
     def clear(self):
         self.current_input = ""
         self.result_label.config(text="")
-        
+
     def close(self):
         self.root.quit()
         self.root.destroy()
 
-# เริ่มต้นโปรแกรม
-root = tk.Tk()
-app = CalculatorApp(root)
-root.mainloop()
+# Start application
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CalculatorApp(root)
+    root.mainloop()
