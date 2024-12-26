@@ -33,7 +33,7 @@ class CalculatorApp:
         for text, row, col, colspan in buttons:
             button = ttk.Button(self.root, text=text, command=lambda t=text: self.on_button_click(t))
             button.grid(row=row, column=col, columnspan=colspan, sticky="we", padx=5, pady=5)
-
+    
     def on_button_click(self, button_text):
         if button_text == "=":
             self.evaluate_expression()
@@ -48,9 +48,16 @@ class CalculatorApp:
             self.calculate_percentage()
         elif button_text == "ปิด":
             self.close()
+        elif button_text == ".":
+            # Check if the last number already contains a "."
+            last_number = self.current_input.split("+")[-1].split("-")[-1].split("*")[-1].split("/")[-1]
+            if "." not in last_number:
+                self.current_input += button_text
+                self.result_label.config(text=self.current_input)
         else:
             self.current_input += button_text
             self.result_label.config(text=self.current_input)
+
 
     def on_key_press(self, event):
         key = event.char
@@ -97,6 +104,7 @@ class CalculatorApp:
     def calculate_percentage(self):
         try:
             result = float(self.current_input) / 100
+            print(result)
             self.result_label.config(text=str(result))
             self.current_input = str(result)
         except Exception:
