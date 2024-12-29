@@ -107,6 +107,9 @@ def convert():
         if not user_input:
             raise ValueError("กรุณากรอกจำนวนเงิน")
         
+        if user_input.count(".") > 1:
+            raise ValueError("กรุณาป้อนค่าที่มีจุดทศนิยมได้เพียง 1 จุดเท่านั้น (ห้ามมีจุดทศนิยมซ้ำกัน)")
+        
         # ตรวจสอบรูปแบบทศนิยม
         if "." in user_input:
             integer_part, decimal_part = user_input.split(".")
