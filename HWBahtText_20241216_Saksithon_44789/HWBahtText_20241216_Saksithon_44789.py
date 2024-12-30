@@ -29,43 +29,28 @@ def number_to_thai(num):
             return "ศูนย์"
         
         parts = []
+        thresholds = [
+            (10**12, "ล้านล้าน"),
+            (10**11, "แสนล้าน"),
+            (10**10, "หมื่นล้าน"),
+            (10**9, "พันล้าน"),
+            (10**8, "ร้อยล้าน"),
+            (10**7, "สิบล้าน"),
+            (10**6, "ล้าน"),
+            (10**5, "แสน"),
+            (10**4, "หมื่น"),
+            (10**3, "พัน"),
+            (10**2, "ร้อย")
+        ]
         
-        if n >= 1000000000000:
-            parts.append(convert_tens(n // 1000000000000, units, tens) + "ล้านล้าน")
-            n %= 1000000000000
-        if n >= 100000000000:
-            parts.append(convert_tens(n // 100000000000, units, tens) + "แสนล้าน")
-            n %= 100000000000   
-        if n >= 10000000000:
-            parts.append(convert_tens(n // 10000000000, units, tens) + "หมื่นล้าน")
-            n %= 10000000000
-        if n >= 1000000000:
-            parts.append(convert_tens(n // 1000000000, units, tens) + "พันล้าน")
-            n %= 1000000000
-        if n >= 100000000:
-            parts.append(convert_tens(n // 100000000, units, tens) + "ร้อยล้าน")
-            n %= 100000000
-        if n >= 10000000:
-            parts.append(convert_tens(n // 10000000, units, tens) + "สิบล้าน")
-            n %= 10000000
-        if n >= 1000000:
-            parts.append(convert_tens(n // 1000000, units, tens) + "ล้าน")
-            n %= 1000000
-        if n >= 100000:
-            parts.append(convert_tens(n // 100000, units, tens) + "แสน")
-            n %= 100000
-        if n >= 10000:
-            parts.append(convert_tens(n // 10000, units, tens) + "หมื่น")
-            n %= 10000
-        if n >= 1000:
-            parts.append(convert_tens(n // 1000, units, tens) + "พัน")
-            n %= 1000
-        if n >= 100:
-            parts.append(convert_tens(n // 100, units, tens) + "ร้อย")
-            n %= 100
+        for threshold, text in thresholds:
+            if n >= threshold:
+                parts.append(convert_tens(n // threshold, units, tens) + text)
+                n %= threshold
+                
         if n > 0:
             parts.append(convert_tens(n, units, tens))
-            
+       
         return "".join(parts)
     
     def convert_decimal_part(n):
